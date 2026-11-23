@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<style>
+  :root { --bg:#fbf7f3; --card:#fff; --ink:#3b3330; --muted:#8a7d76; --accent:#d98e73; --accent-d:#c0745a; --line:#eadfd7; --off:#f0ebe7; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:-apple-system,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif; line-height:1.6; }
+  main { max-width:640px; margin:0 auto; padding:24px 16px 48px; }
+  h1 { font-size:1.5rem; margin:8px 0 4px; }
+  .lead { color:var(--muted); margin:0 0 20px; font-size:.95rem; }
+  section { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px 16px; margin-bottom:16px; }
+  h2 { font-size:1.05rem; margin:0 0 12px; display:flex; align-items:center; gap:8px; }
+  h2 .step { width:24px; height:24px; border-radius:50%; background:var(--accent); color:#fff; font-size:.85rem; display:inline-flex; align-items:center; justify-content:center; flex:none; }
+  h3 { font-size:.98rem; margin:18px 0 0; color:var(--accent-d); }
+  label.f { display:block; font-size:.9rem; margin:12px 0 4px; font-weight:600; }
+  label.f small { font-weight:400; color:var(--muted); }
+  input[type=text], input[type=number], input[type=tel], input[type=email], textarea {
+    width:100%; padding:10px 12px; font-size:1rem; border:1px solid var(--line); border-radius:10px; background:#fff; color:var(--ink); font-family:inherit; }
+  input::placeholder, textarea::placeholder { color:#a99d96; opacity:1; }
+  input:focus, textarea:focus { outline:2px solid var(--accent); border-color:transparent; }
+  .row { display:flex; gap:12px; } .row > div { flex:1; min-width:0; }
+  .chips { display:flex; flex-wrap:wrap; gap:8px; }
+  .chip input { position:absolute; opacity:0; pointer-events:none; }
+  .chip span { display:inline-block; padding:8px 14px; border:1px solid var(--line); border-radius:999px; cursor:pointer; font-size:.95rem; background:#fff; }
+  .chip input:checked + span { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .chip input:focus-visible + span { outline:2px solid var(--accent-d); outline-offset:2px; }
+
+  /* 方案卡片 */
+  .pkgs { display:grid; gap:12px; }
+  .pkg { display:block; position:relative; cursor:pointer; }
+  .pkg input { position:absolute; opacity:0; pointer-events:none; }
+  .pkg-body { border:2px solid var(--line); border-radius:14px; padding:14px 14px 12px; background:#fff; transition:border-color .15s, background .15s; }
+  .pkg.on .pkg-body { border-color:var(--accent); background:#fffaf7; }
+  .pkg input:focus-visible ~ .pkg-body { outline:2px solid var(--accent-d); outline-offset:2px; }
+  .pkg-head { display:flex; align-items:center; gap:8px; }
+  .badge { background:var(--accent); color:#fff; border-radius:999px; padding:2px 10px; font-size:.8rem; font-weight:700; flex:none; }
+  .pkg-name { font-size:1.05rem; font-weight:700; flex:1; min-width:0; }
+  .tick { width:24px; height:24px; border-radius:50%; border:2px solid var(--line); flex:none; display:flex; align-items:center; justify-content:center; font-size:14px; color:transparent; }
+  .pkg.on .tick { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .pkg-price { display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; margin:10px 0 4px; }
+  .pkg-price .now { font-size:1.45rem; font-weight:800; color:var(--accent-d); }
+  .pkg-price .old { color:var(--muted); text-decoration:line-through; font-size:.95rem; }
+  .pkg-price .save { background:#fbeee8; color:var(--accent-d); border-radius:6px; padding:1px 8px; font-size:.8rem; font-weight:600; }
+  .who { display:flex; gap:6px; flex-wrap:wrap; margin:6px 0; }
+  .who span { border:1px solid var(--line); border-radius:999px; padding:1px 10px; font-size:.82rem; color:var(--muted); }
+  .pkg ul { margin:8px 0 0; padding:0; list-style:none; }
+  .pkg li { position:relative; padding:3px 0 3px 18px; font-size:.9rem; line-height:1.6; }
+  .pkg li::before { content:'✿'; position:absolute; left:0; color:var(--accent); font-size:.8rem; top:5px; }
+  .gift { margin-top:8px; padding:7px 10px; background:#fbf2e4; border-radius:8px; font-size:.88rem; }
+  .pnote { margin-top:6px; color:var(--muted); font-size:.82rem; }
+
+  /* 增加 2 寶 */
+  .addon { display:flex; gap:10px; align-items:flex-start; padding:12px; border:1px dashed var(--accent); border-radius:12px; background:#fffaf7; cursor:pointer; margin-top:20px; }
+  .addon input { width:20px; height:20px; margin:2px 0 0; accent-color:var(--accent); flex:none; }
+  .addon b { display:block; }
+  .addon small { color:var(--muted); }
+  .addon .fee { color:var(--accent-d); font-weight:700; }
+
+  /* 日期時段 */
+  .tabs { display:flex; gap:8px; overflow-x:auto; padding-bottom:8px; margin-bottom:8px; }
+  .tab { flex:none; padding:6px 14px; border:1px solid var(--line); background:#fff; border-radius:999px; cursor:pointer; font-size:.9rem; font-family:inherit; color:var(--ink); }
+  .tab.on { background:var(--ink); color:#fff; border-color:var(--ink); }
+  .day { display:flex; align-items:center; gap:10px; padding:8px 0; border-top:1px solid var(--line); }
+  .day:first-child { border-top:0; }
+  .dlabel { width:84px; flex:none; font-weight:600; font-size:.95rem; }
+  .slots { display:flex; flex-wrap:wrap; gap:8px; flex:1; }
+  .slot { padding:7px 10px; border:1px solid var(--line); background:#fff; border-radius:10px; cursor:pointer; font-size:.88rem; font-family:inherit; color:var(--ink); }
+  .slot.on { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .slot:disabled { background:var(--off); color:#b5aaa3; cursor:not-allowed; text-decoration:line-through; }
+  .picked { margin-top:12px; display:flex; flex-wrap:wrap; gap:6px; }
+  .tag { background:#fbeee8; border:1px solid #f0d5c8; border-radius:999px; padding:3px 4px 3px 10px; font-size:.82rem; display:inline-flex; align-items:center; gap:4px; }
+  .tag button { border:0; background:none; cursor:pointer; font-size:1rem; line-height:1; color:var(--accent-d); padding:0 6px; }
+  .hint { color:var(--muted); font-size:.85rem; margin:8px 0 0; }
+
+  /* 費用 */
+  .sum .r { display:flex; justify-content:space-between; gap:12px; padding:5px 0; font-size:.95rem; }
+  .sum .r.total { border-top:1px solid var(--line); margin-top:6px; padding-top:10px; font-weight:800; font-size:1.25rem; color:var(--accent-d); }
+  .sum .r.dep { font-weight:700; color:var(--accent-d); background:#fbeee8; border-radius:8px; padding:8px 10px; margin-top:8px; }
+  .notice { margin:0; padding:0; list-style:none; }
+  .notice li { position:relative; padding:4px 0 4px 20px; font-size:.9rem; line-height:1.7; white-space:pre-wrap; }
+  .notice li::before { content:'✿'; position:absolute; left:0; color:var(--accent); font-size:.8rem; top:6px; }
+
+  button.submit { width:100%; padding:14px; font-size:1.05rem; font-weight:600; color:#fff; background:var(--accent); border:0; border-radius:12px; cursor:pointer; font-family:inherit; }
+  button.submit:disabled { opacity:.6; cursor:wait; }
+  .err { color:#b3261e; margin:10px 0 0; font-size:.92rem; white-space:pre-wrap; }
+  .done { text-align:center; padding:32px 16px; }
+  .done h2 { font-size:1.3rem; justify-content:center; }
+  .lbtn { display:inline-block; padding:12px 26px; border-radius:999px; background:var(--accent); color:#fff; text-decoration:none; font-weight:600; }
+  [hidden] { display:none !important; }
+  @media (max-width:480px){ .day { flex-direction:column; align-items:flex-start; gap:6px; } .row { flex-direction:column; gap:0; } }
+</style>
+</head>
+<body>
+<main>
+  <h1 id="title">兒童寫真預約申請</h1>
+  <p class="lead">請依序選擇拍攝方案、填寫寶貝資料與方便的時段。送出後客服會與您聯繫，確認正式的日期與時段。</p>
+  <div id="loading" class="hint">載入中…</div>
+
+  <form id="form" hidden novalidate>
+    <section>
+      <h2><span class="step">1</span>選擇拍攝方案</h2>
+      <div class="pkgs" id="pkgs"></div>
+    </section>
+
+    <section>
+      <h2><span class="step">2</span>小孩資料</h2>
+      <label class="f" for="nickname">名稱（暱稱）</label>
+      <input type="text" id="nickname" maxlength="30" autocomplete="off">
+      <div class="row">
+        <div>
+          <label class="f" for="height">實際身高 <small>（公分）</small></label>
+          <input type="number" id="height" inputmode="decimal" min="30" max="220" step="0.1">
+        </div>
+        <div>
+          <label class="f" for="age">年齡 <small>（例：7y4m = 7 歲 4 個月）</small></label>
+          <input type="text" id="age" maxlength="8" placeholder="例：7y4m" autocapitalize="off" autocomplete="off">
+          <p class="hint" style="margin-top:4px">請填 7y4m（7 歲 4 個月）；未滿 1 歲填 8m</p>
+        </div>
+      </div>
+      <label class="f">性別</label>
+      <div class="chips" id="genders"></div>
+
+      <label class="addon" for="twin">
+        <input type="checkbox" id="twin">
+        <span><b>增加 2 寶　<span class="fee" id="feeText"></span></b><small>提供服裝及造型。勾選後請填寫第 2 位小孩的資料。</small></span>
+      </label>
+
+      <div id="twinBox" hidden>
+        <h3>第 2 位小孩</h3>
+        <label class="f" for="nickname2">名稱（暱稱）</label>
+        <input type="text" id="nickname2" maxlength="30" autocomplete="off">
+        <div class="row">
+          <div>
+            <label class="f" for="height2">實際身高 <small>（公分）</small></label>
+            <input type="number" id="height2" inputmode="decimal" min="30" max="220" step="0.1">
+          </div>
+          <div>
+            <label class="f" for="age2">年齡 <small>（例：7y4m）</small></label>
+            <input type="text" id="age2" maxlength="8" placeholder="例：7y4m" autocapitalize="off" autocomplete="off">
+            <p class="hint" style="margin-top:4px">請填 7y4m（7 歲 4 個月）；未滿 1 歲填 8m</p>
+          </div>
+        </div>
+        <label class="f">性別</label>
+        <div class="chips" id="genders2"></div>
+      </div>
+    </section>
+
+    <section>
+      <h2><span class="step">3</span>希望拍攝的日期與時段 <small style="font-weight:400;color:var(--muted)">（可複選）</small></h2>
+      <div class="tabs" id="months"></div>
+      <div id="days"></div>
+      <p class="hint" id="rule"></p>
+      <div class="picked" id="picked"></div>
+      <p class="hint">已額滿的時段無法選擇。此處僅表示您方便的時段，尚未保留，正式日期由客服與您確認。</p>
+    </section>
+
+    <section>
+      <h2><span class="step">4</span>聯繫人</h2>
+      <label class="f" for="parent">名稱</label>
+      <input type="text" id="parent" maxlength="30">
+      <label class="f">聯絡方式 <small>（電話或 LINE ID，至少填一項）</small></label>
+      <div class="row">
+        <div>
+          <label class="f" for="phone" style="margin-top:0">聯絡電話</label>
+          <input type="tel" id="phone" inputmode="tel" maxlength="20">
+        </div>
+        <div>
+          <label class="f" for="lineId" style="margin-top:0">LINE ID</label>
+          <input type="text" id="lineId" maxlength="40" autocapitalize="off" autocomplete="off">
+        </div>
+      </div>
+      <p class="hint" id="lineHint"></p>
+      <label class="f" for="email">電子郵件 <small>（確認信與提醒信會寄到這裡）</small></label>
+      <input type="email" id="email" maxlength="100">
+      <label class="f" for="note">備註 <small>（選填）</small></label>
+      <textarea id="note" rows="3" maxlength="500"></textarea>
+    </section>
+
+    <section class="sum">
+      <h2>費用明細</h2>
+      <div id="sumBody"></div>
+      <p class="hint" id="depHint"></p>
+    </section>
+
+    <section id="noticeBox" hidden>
+      <h2>注意事項</h2>
+      <ul class="notice" id="noticeList"></ul>
+    </section>
+
+    <button type="submit" class="submit" id="submit">送出預約申請</button>
+    <p class="err" id="err" role="alert"></p>
+  </form>
+
+  <section class="done" id="done" hidden>
+    <h2>已收到您的申請 🎉</h2>
+    <p>申請編號：<strong id="rid"></strong></p>
+    <p>服務費用：<strong id="rtotal"></strong>　訂金金額：<strong id="rdeposit"></strong></p>
+    <p>申請通知已寄到您的 Email。客服會與您聯繫，確認正式的拍攝日期與時段。</p>
+    <p id="doneLine" hidden><a id="doneLineLink" class="lbtn" target="_blank" rel="noopener">加入官方 LINE</a></p>
+  </section>
+</main>
+
+<script src="config.js"></script>
+<script>
+(function () {
+  var WD = ['日','一','二','三','四','五','六'];
+  var data, month, pkg = null, sel = {};     // sel: { "yyyy-MM-dd|AM": true }
+  function $(id) { return document.getElementById(id); }
+  // 後台網址：放在自己的網站時，貼上 Apps Script「網頁應用程式」網址（結尾 /exec）
+  var API_URL = window.BOOKING_API_URL || '';
+  function callApi(name, arg) {
+    if (!API_URL && window.google && google.script && google.script.run) {   // 在 Apps Script 內建頁面執行
+      return new Promise(function (ok, no) {
+        var r = google.script.run.withSuccessHandler(ok).withFailureHandler(no);
+        if (name === 'init') r.getInitData(); else r.submitRequest(arg);
+      });
+    }
+    var p = name === 'init'
+      ? fetch(API_URL + '?api=init')
+      : fetch(API_URL, { method: 'POST', body: JSON.stringify(arg) });      // 純文字內容，避免瀏覽器預檢請求
+    return p.then(function (res) { return res.json(); }).then(function (j) {
+      if (!j.ok) throw new Error(j.error || '發生錯誤');
+      return j.data;
+    });
+  }
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  function fmt(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+  function money(n) { return 'NT$ ' + fmt(n); }
+
+  function chips(box, name, items) {
+    items.forEach(function (t) {
+      var l = el('label', 'chip'), i = document.createElement('input');
+      i.type = 'radio'; i.name = name; i.value = t;
+      l.appendChild(i); l.appendChild(el('span', null, t)); box.appendChild(l);
+    });
+  }
+  function slotLabel(id) { return data.slots.filter(function (s) { return s.id === id; })[0].label; }
+  function pretty(key) {
+    var p = key.split('|'), d = p[0].split('-');
+    var wd = data.days.filter(function (x) { return x.date === p[0]; })[0].weekday;
+    return (+d[1]) + '/' + (+d[2]) + '（' + WD[wd] + '）' + slotLabel(p[1]);
+  }
+
+  // ---------- 方案 ----------
+  function unitPrice(p) { return p.offer || p.price; }
+  function renderPkgs() {
+    var box = $('pkgs'); box.innerHTML = '';
+    if (!data.packages.length) { box.appendChild(el('p', 'hint', '目前尚未設定拍攝方案，請聯繫客服。')); return; }
+    data.packages.forEach(function (p) {
+      var card = el('label', 'pkg');
+      var rb = document.createElement('input'); rb.type = 'radio'; rb.name = 'pkg'; rb.value = p.id;
+      card.appendChild(rb);
+      var body = el('div', 'pkg-body');
+
+      var head = el('div', 'pkg-head');
+      if (p.plan) head.appendChild(el('span', 'badge', '方案 ' + p.plan));
+      head.appendChild(el('span', 'pkg-name', p.name));
+      head.appendChild(el('span', 'tick', '✓'));
+      body.appendChild(head);
+
+      var price = el('div', 'pkg-price');
+      price.appendChild(el('span', 'now', money(unitPrice(p))));
+      if (p.offer) {
+        price.appendChild(el('span', 'old', money(p.price)));
+        price.appendChild(el('span', 'save', '省 ' + fmt(p.price - p.offer)));
+      }
+      body.appendChild(price);
+
+      if (p.kids || p.adults) {
+        var who = el('div', 'who');
+        if (p.kids) who.appendChild(el('span', null, '小孩 ' + p.kids + ' 位'));
+        if (p.adults) who.appendChild(el('span', null, '大人 ' + p.adults + ' 位'));
+        body.appendChild(who);
+      }
+      if (p.content.length) {
+        var ul = el('ul');
+        p.content.forEach(function (t) { ul.appendChild(el('li', null, t)); });
+        body.appendChild(ul);
+      }
+      if (p.gift) body.appendChild(el('div', 'gift', '🎁 贈品：' + p.gift));
+      if (p.note) body.appendChild(el('div', 'pnote', '備註：' + p.note));
+
+      card.appendChild(body);
+      rb.addEventListener('change', function () {
+        pkg = p;
+        Array.prototype.forEach.call(box.children, function (c) { c.classList.toggle('on', c === card); });
+        updateSum();
+      });
+      box.appendChild(card);
+    });
+  }
+
+  function updateSum() {
+    var box = $('sumBody'); box.innerHTML = '';
+    function row(a, b, cls) { var r = el('div', 'r' + (cls ? ' ' + cls : '')); r.appendChild(el('span', null, a)); r.appendChild(el('span', null, b)); box.appendChild(r); }
+    if (!pkg) { box.appendChild(el('p', 'hint', '請先選擇拍攝方案')); return; }
+    var total = unitPrice(pkg);
+    row('方案：' + (pkg.plan ? pkg.plan + '｜' : '') + pkg.name, money(unitPrice(pkg)));
+    if ($('twin').checked) { total += data.secondFee; row('增加 2 寶（含服裝及造型）', '+ ' + money(data.secondFee)); }
+    row('合計', money(total), 'total');
+    row('訂金金額（合計金額 ' + Math.round(data.depositRate * 100) + '%）', money(Math.round(total * data.depositRate)), 'dep');
+  }
+
+  // ---------- 日期時段 ----------
+  function renderMonths() {
+    var box = $('months'); box.innerHTML = '';
+    var seen = [];
+    data.days.forEach(function (d) { var m = d.date.slice(0, 7); if (seen.indexOf(m) === -1) seen.push(m); });
+    if (!month) month = seen[0];
+    seen.forEach(function (m) {
+      var b = el('button', 'tab' + (m === month ? ' on' : ''), m.replace('-', ' 年 ') + ' 月');
+      b.type = 'button';
+      b.onclick = function () { month = m; renderMonths(); renderDays(); };
+      box.appendChild(b);
+    });
+  }
+  function renderDays() {
+    var box = $('days'); box.innerHTML = '';
+    data.days.filter(function (d) { return d.date.slice(0, 7) === month; }).forEach(function (d) {
+      var row = el('div', 'day'), p = d.date.split('-');
+      row.appendChild(el('div', 'dlabel', (+p[1]) + '/' + (+p[2]) + '（' + WD[d.weekday] + '）'));
+      var sl = el('div', 'slots');
+      d.slots.forEach(function (s) {
+        var key = d.date + '|' + s.id;
+        var b = el('button', 'slot' + (sel[key] ? ' on' : ''), s.taken ? s.label + ' 已額滿' : s.label);
+        b.type = 'button';
+        if (s.taken) b.disabled = true;
+        b.onclick = function () {
+          if (sel[key]) delete sel[key]; else sel[key] = true;
+          b.classList.toggle('on'); renderPicked();
+        };
+        sl.appendChild(b);
+      });
+      row.appendChild(sl); box.appendChild(row);
+    });
+    if (!box.children.length) box.appendChild(el('p', 'hint', '本月暫無可預約日期'));
+  }
+  function renderPicked() {
+    var box = $('picked'); box.innerHTML = '';
+    Object.keys(sel).sort().forEach(function (key) {
+      var t = el('span', 'tag', pretty(key)), x = el('button', null, '×');
+      x.type = 'button'; x.setAttribute('aria-label', '移除 ' + pretty(key));
+      x.onclick = function () { delete sel[key]; renderPicked(); renderDays(); };
+      t.appendChild(x); box.appendChild(t);
+    });
+  }
+
+  // ---------- 初始化 ----------
+  function init(d) {
+    data = d;
+    document.title = d.studio + '｜預約申請';
+    $('title').textContent = d.studio + '　拍攝預約申請';
+    chips($('genders'), 'gender', d.genders);
+    chips($('genders2'), 'gender2', d.genders);
+    $('feeText').textContent = '+ ' + money(d.secondFee);
+    $('depHint').textContent = '合計金額 ' + Math.round(d.depositRate * 100) + '% 為訂金金額（拍攝預付款）。實際費用以客服與您確認為準。';
+    if (d.notice && d.notice.length) {
+      d.notice.forEach(function (t) { $('noticeList').appendChild(el('li', null, t)); });
+      $('noticeBox').hidden = false;
+    }
+    var f0 = d.days.length ? d.days[0].date.split('-') : null;
+    $('rule').textContent = '為了妥善準備拍攝，可預約日期為申請日起第 ' + d.earliestDays + ' 天之後' +
+      (f0 ? '（最早 ' + (+f0[1]) + '/' + (+f0[2]) + '）' : '') + '。';
+    if (d.lineUrl) {
+      var lh = $('lineHint');
+      lh.appendChild(document.createTextNode('建議先加入官方 LINE，客服會在 LINE 上與您聯繫確認拍攝時段：'));
+      var la = el('a', null, '點此加入'); la.href = d.lineUrl; la.target = '_blank'; la.rel = 'noopener'; la.style.color = '#c0745a';
+      lh.appendChild(la);
+    }
+    renderPkgs(); updateSum();
+    renderMonths(); renderDays(); renderPicked();
+    $('loading').hidden = true; $('form').hidden = false;
+  }
+  function loadFail(e) { $('loading').textContent = '載入失敗，請重新整理頁面。（' + (e && e.message || e) + '）'; }
+
+  $('twin').addEventListener('change', function () { $('twinBox').hidden = !this.checked; updateSum(); });
+
+  function val(id) { return $(id).value.trim(); }
+  function radio(name) { var r = document.querySelector('input[name=' + name + ']:checked'); return r ? r.value : ''; }
+  function ageOk(s) {
+    s = s.replace(/\s+/g, '').toLowerCase();
+    var m = /^(?:(\d{1,2})y)?(?:(\d{1,2})m)?$/.exec(s);
+    return !!(s && m && !(m[2] && Number(m[2]) > 11));
+  }
+
+  $('form').addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    var err = $('err'); err.textContent = '';
+    var twin = $('twin').checked;
+    var f = {
+      pkgId: pkg ? pkg.id : '',
+      nickname: val('nickname'), height: val('height'), gender: radio('gender'), age: val('age'),
+      twin: twin,
+      nickname2: val('nickname2'), height2: val('height2'), gender2: radio('gender2'), age2: val('age2'),
+      slots: Object.keys(sel), parent: val('parent'), phone: val('phone'), lineId: val('lineId'), email: val('email'), note: val('note')
+    };
+    var miss = [];
+    if (!f.pkgId) miss.push('拍攝方案');
+    if (!f.nickname) miss.push('小孩名稱（暱稱）'); if (!f.height) miss.push('身高'); if (!f.gender) miss.push('性別');
+    if (!f.age) miss.push('年齡'); else if (!ageOk(f.age)) miss.push('年齡格式（請填 7y4m）');
+    if (twin) {
+      if (!f.nickname2) miss.push('第 2 位小孩名稱'); if (!f.height2) miss.push('第 2 位小孩身高'); if (!f.gender2) miss.push('第 2 位小孩性別');
+      if (!f.age2) miss.push('第 2 位小孩年齡'); else if (!ageOk(f.age2)) miss.push('第 2 位小孩年齡格式（請填 7y4m）');
+    }
+    if (!f.slots.length) miss.push('希望的日期時段');
+    if (!f.parent) miss.push('聯繫人名稱'); if (!f.phone && !f.lineId) miss.push('電話或 LINE ID（至少一項）'); if (!f.email) miss.push('電子郵件');
+    if (miss.length) { err.textContent = '請填寫：' + miss.join('、'); return; }
+
+    var btn = $('submit'); btn.disabled = true; btn.textContent = '送出中…';
+    callApi('submit', f).then(function (r) {
+        $('form').hidden = true; $('done').hidden = false; $('rid').textContent = r.id; $('rtotal').textContent = money(r.total); $('rdeposit').textContent = money(r.deposit);
+        if (data.lineUrl) { $('doneLineLink').href = data.lineUrl; $('doneLine').hidden = false; }
+        window.scrollTo(0, 0);
+    }, function (e) {
+        btn.disabled = false; btn.textContent = '送出預約申請';
+        err.textContent = (e && e.message || String(e)).replace(/^Error:\s*/, '');
+        // 時段可能剛被預約，重新載入最新可用狀態
+        callApi('init').then(function (d) { data.days = d.days; renderDays(); }, function () {});
+    });
+  });
+
+  callApi('init').then(init, loadFail);
+})();
+</script>
+</body>
+</html>
